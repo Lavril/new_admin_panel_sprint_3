@@ -7,27 +7,29 @@ from elastic import ElasticConnector
 from extractor import Extractor
 from loader import ElasticsearchLoader, generate_actions
 from models.models import FilmWork
+from config.settings import settings
 
 
 def run_etl():
     es_connector = ElasticConnector()
     es_connector.create_index_if_not_exists()
     loader = ElasticsearchLoader(es_connector)
+    new_index = settings.elastic_index
     while True:
         start_etl_time = time.time()
         extractor = Extractor()
         for table_name in ['person', 'genre']:
             for extracted_data in extractor.extract_persons_or_genres(table_name):
                 transformed_data = transformation(extracted_data)
-                actions = generate_actions(transformed_data, "movies")
-                success = loader.bulk_load(actions, "movies")
+                actions = generate_actions(transformed_data, new_index)
+                success = loader.bulk_load(actions, new_index)
                 if not success:
                     raise Exception("Ошибка при загрузке данных в Elasticsearch")
 
         for extracted_data in extractor.extract_film_works():
             transformed_data = transformation(extracted_data)
-            actions = generate_actions(transformed_data, "movies")
-            success = loader.bulk_load(actions, "movies")
+            actions = generate_actions(transformed_data, new_index)
+            success = loader.bulk_load(actions, new_index)
             if not success:
                 raise Exception("Ошибка при загрузке данных в Elasticsearch")
         time.sleep(15 * 60 - (time.time() - start_etl_time))

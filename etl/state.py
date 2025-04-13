@@ -44,16 +44,3 @@ class State:
     def get_state(self, key: str) -> Any:
         """Получить состояние по определённому ключу."""
         return self.storage.retrieve_state().get(key)
-
-
-if __name__ == '__main__':
-    storage = JsonFileStorage("state.json")
-    state = State(storage)
-
-    # Установка состояния
-    state.set_state("last_processed_id", 12345)
-    state.set_state("last_update", "2023-01-01")
-
-    # Получение состояния
-    print(state.get_state("last_processed_id"))  # 12345
-    print(state.get_state("non_existent_key"))

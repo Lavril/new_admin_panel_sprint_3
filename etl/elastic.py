@@ -1,22 +1,22 @@
 import logging
-import os
 from contextlib import contextmanager
 
 from elasticsearch import Elasticsearch
 
 from backoff_self.backoff import backoff
+from config.settings import settings
 
 
 class ElasticConnector:
     """Подключение к Elasticsearch."""
 
     def __init__(self):
-        self.index = "movies"
+        self.index = settings.elastic_index
         self.client = None
-        self.dsn = f"{os.getenv('ELASTIC_SCHEME', 'http')}://{os.getenv('ELASTIC_HOST', 'elasticsearch')}:{os.getenv('ELASTIC_PORT', '9200')}"
+        self.dsn = settings.elastic_dsn
         self.logger = logging.getLogger(__name__)
 
-    @backoff(start_sleep_time=1, factor=2, border_sleep_time=30, jitter=True)
+    @backoff(start_sleep_time=1, factor=2, border_sleep_time=30, max_retries=10, jitter=True)
     def _connect(self):
         """Метод для подключения с backoff."""
         self.client = Elasticsearch(

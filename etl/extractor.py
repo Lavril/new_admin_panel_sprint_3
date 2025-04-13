@@ -1,17 +1,17 @@
 import logging
-import os
 
 from models.models import FilmWork, Person, Genre
 from postgres import PostgresConnector, get_results, \
     get_film_works_by_persons_or_genres_modified, get_modified
 from state import JsonFileStorage, State
+from config.settings import settings
 
 
 class Extractor:
     """Извлечение данных из PostgreSQL"""
 
     def __init__(self):
-        storage = JsonFileStorage(os.getenv('STORAGE'))
+        storage = JsonFileStorage(settings.state_file_path)
 
         self.state = State(storage)
         self.logger = logging.getLogger(__name__)
@@ -60,7 +60,6 @@ class Extractor:
                 while True:
                     data, err = get_modified(cursor, self.state, select_modified, table_name)
                     if err:
-                        # TODO обработать ошибку
                         return
 
                     if not data:
@@ -77,12 +76,9 @@ class Extractor:
                     while True:
                         data, err = get_film_works_by_persons_or_genres_modified(cursor, self.state, temporary_select, part_ids, table_name)
                         if err:
-                            # TODO обработать ошибку
                             return
                         if not data:
                             break
-
-                        # print("film_works_by_persons:", data)
 
                         last_modified = data[-1]['modified'].isoformat()
                         self.state.set_state(f'temporary_film_works_by_{table_name}', last_modified)
@@ -103,7 +99,6 @@ class Extractor:
                 while True:
                     data, err = get_modified(cursor, self.state, select_modified, table_name)
                     if err:
-                        # TODO обработать ошибку
                         return
 
                     if not data:
@@ -140,7 +135,6 @@ def get_film_data(cursor, query: str, data: list, table_name: str) -> dict[str, 
     temporary_select = query.format(",".join(["%s"] * len(film_works_ids)))
     data, err = get_results(cursor, temporary_select, film_works_ids, table_name)
     if err:
-        # TODO обработать ошибку
         raise Exception("Ошибка при получении данных из БД")
 
     # Собираем данные для будущего transform

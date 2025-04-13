@@ -11,7 +11,7 @@ class ElasticsearchLoader:
         self.es = es_connector
         self.logger = logging.getLogger(__name__)
 
-    @backoff(start_sleep_time=0.1, factor=2, border_sleep_time=10, jitter=True)
+    @backoff(start_sleep_time=0.1, factor=2, border_sleep_time=10, max_retries=10, jitter=True)
     def bulk_load(self, actions: Iterator[dict], index: str) -> bool:
         """
         Массовая загрузка данных в Elasticsearch с обработкой ошибок

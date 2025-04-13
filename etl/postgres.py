@@ -1,5 +1,4 @@
 import logging
-import os
 from contextlib import contextmanager
 from datetime import datetime
 
@@ -8,21 +7,17 @@ from psycopg import connect, ClientCursor, OperationalError
 from psycopg.rows import dict_row
 
 from backoff_self.backoff import backoff
+from config.settings import settings
 
 
 class PostgresConnector:
     """Подключение к PostgreSQL"""
 
     def __init__(self):
-        self.dsl =  {'dbname': os.getenv('DB_NAME'),
-                     'user': os.getenv('DB_USER'),
-                     'password': os.getenv('DB_PASSWORD'),
-                     'host': os.getenv('DB_HOST'),
-                     'port': os.getenv('DB_PORT')
-                     }
+        self.dsl = settings.postgres_dsl
         self.logger = logging.getLogger(__name__)
 
-    @backoff(start_sleep_time=0.1, factor=2, border_sleep_time=10, jitter=True)
+    @backoff(start_sleep_time=0.1, factor=2, border_sleep_time=10, max_retries=10, jitter=True)
     def _create_connection(self):
         """Функция подключения с повторными попытками"""
         return connect(**self.dsl, row_factory=dict_row, cursor_factory=ClientCursor)

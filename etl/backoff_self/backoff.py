@@ -3,13 +3,14 @@ from functools import wraps
 from random import uniform
 
 
-def backoff(start_sleep_time=0.1, factor=2, border_sleep_time=10, jitter=True):
+def backoff(start_sleep_time: float = 0.1, factor: int = 2, border_sleep_time: float = 10, max_retries: int = 10, jitter: bool = True):
     """
     Функция для повторного выполнения функции через некоторое время, если возникла ошибка. Использует наивный экспоненциальный рост времени повтора (factor) до граничного времени ожидания (border_sleep_time)
 
     Формула:
         t = start_sleep_time * (factor ^ n), если t < border_sleep_time
         t = border_sleep_time, иначе
+    :param max_retries: максимальное количество попыток
     :param start_sleep_time: начальное время ожидания
     :param factor: во сколько раз нужно увеличивать время ожидания на каждой итерации
     :param jitter: если True, добавляет случайное отклонение к времени ожидания
@@ -21,7 +22,7 @@ def backoff(start_sleep_time=0.1, factor=2, border_sleep_time=10, jitter=True):
         @wraps(func)
         def inner(*args, **kwargs):
             n = 0
-            while True:
+            while n < max_retries:
                 try:
                     return func(*args, **kwargs)
                 except Exception:
