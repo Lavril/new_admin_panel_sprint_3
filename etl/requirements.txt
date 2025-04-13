@@ -1,0 +1,5 @@
+dotenv~=0.9.9
+psycopg~=3.2.5
+psycopg2-binary~=2.9.10
+elasticsearch~=8.17.2
+pydantic~=2.11.3
